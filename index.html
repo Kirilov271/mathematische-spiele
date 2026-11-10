@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathe-Spiel: Challenge</title>
+  
+  <!-- Moderne und gut lesbare Google Fonts eingebunden -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.85);
+      --accent-color: #38bdf8;
+      --accent-hover: #0284c7;
+      --text-main: #f8fafc;
+      --success: #22c55e;
+      --danger: #ef4444;
+      
+      /* Schriftarten definieren */
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Outfit', 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-body);
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      margin-bottom: 5px;
+      letter-spacing: -0.5px;
+    }
+
+    .level-badge {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Menü-Raster für Levelauswahl */
+    .menu-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 0;
+    }
+
+    .level-grid {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .level-card {
+      width: 100px;
+      height: 100px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid var(--accent-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .level-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .level-card.passed {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .level-card .check-mark {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 1.1rem;
+      color: var(--success);
+    }
+
+    .menu-msg {
+      min-height: 24px;
+      text-align: center;
+      color: var(--danger);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .back-btn {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    .question-box {
+      font-size: 1.1rem;
+      font-weight: 500;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 160px;
+      padding: 12px 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: #0f172a;
+      color: #fff;
+      outline: none;
+      text-align: center;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent-color);
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-submit {
+      background: var(--accent-color);
+      color: #0f172a;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-next {
+      background: var(--success);
+      color: #fff;
+      display: none;
+    }
+
+    .feedback {
+      text-align: center;
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 800;
+      min-height: 36px;
+    }
+
+    .feedback.correct { color: var(--success); }
+    .feedback.wrong { color: var(--danger); }
+
+    .formula-hint {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #94a3b8;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      header h1 { font-size: 1.6rem; }
+      .input-group { flex-direction: column; width: 100%; }
+      input[type="number"], button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HAUPTMENÜ ANSICHT -->
+  <div id="menuView" class="menu-container">
+    <header>
+      <h1>Mathe-Challenge</h1>
+      <p style="color: #94a3b8; margin-top: 5px;">Wähle ein Level aus:</p>
+    </header>
+
+    <div class="level-grid">
+      <div class="level-card" id="cardLvl1" onclick="selectLevel(1)">
+        <span>1</span>
+        <span class="check-mark" id="checkLvl1"></span>
+      </div>
+      <div class="level-card" id="cardLvl2" onclick="selectLevel(2)">
+        <span>2</span>
+        <span class="check-mark" id="checkLvl2"></span>
+      </div>
+    </div>
+
+    <div class="menu-msg" id="menuMsg"></div>
+  </div>
+
+  <!-- SPIEL ANSICHT -->
+  <div id="gameView" class="hidden">
+    <button class="back-btn" onclick="showMenu()">← Menü</button>
+    <header>
+      <div class="level-badge" id="levelDisplay">Level 1</div>
+      <h1 id="topicDisplay">Der Satz des Pythagoras</h1>
+    </header>
+
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="800" height="450"></canvas>
+    </div>
+
+    <div class="control-panel">
+      <div class="question-box" id="questionBox">
+        Berechne die Höhe des Turms (<span style="color:#3b82f6; font-weight:bold;">a in m</span>), bevor der Stickman herunterspringt!
+      </div>
+
+      <div class="input-group">
+        <input type="number" id="answerInput" placeholder="Höhe in m" min="1" step="1">
+        <button class="btn-submit" id="submitBtn">Überprüfen</button>
+        <button class="btn-next" id="nextBtn">Weiter ➔</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="formula-hint" id="formulaHint">Formel: a² + b² = c² &nbsp;|&nbsp; a = √(c² - b²)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // DOM-Elemente abrufen
+  const menuView = document.getElementById('menuView');
+  const gameView = document.getElementById('gameView');
+  const menuMsg = document.getElementById('menuMsg');
+  const checkLvl1 = document.getElementById('checkLvl1');
+  const checkLvl2 = document.getElementById('checkLvl2');
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const answerInput = document.getElementById('answerInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const feedback = document.getElementById('feedback');
+  const levelDisplay = document.getElementById('levelDisplay');
+  const topicDisplay = document.getElementById('topicDisplay');
+  const questionBox = document.getElementById('questionBox');
+  const formulaHint = document.getElementById('formulaHint');
+
+  // Spiel-Zustand und Variablen
+  let currentLevel = 1;
+  let level1Passed = false;
+  let level1Streak = 0; // Zählt die Anzahl der richtig gelösten Aufgaben hintereinander
+
+  // Mathematisch korrekte Pythagoreische Tripel (in Metern)
+  const triples = [
+    { a: 8, b: 6, c: 10 },
+    { a: 12, b: 5, c: 13 },
+    { a: 15, b: 8, c: 17 },
+    { a: 12, b: 9, c: 15 },
+    { a: 16, b: 12, c: 20 },
+    { a: 24, b: 7, c: 25 }
+  ];
+
+  let currentProblem = {};
+  let gameState = 'IDLE'; // IDLE, ANIMATING_WIN, ANIMATING_FAIL
+  let animProgress = 0;
+
+  // Zurück zum Hauptmenü wechseln
+  function showMenu() {
+    gameView.classList.add('hidden');
+    menuView.classList.remove('hidden');
+    menuMsg.textContent = '';
+    
+    // Haken setzen, falls Level 1 erfolgreich abgeschlossen wurde
+    if (level1Passed) {
+      checkLvl1.textContent = '✓';
+      document.getElementById('cardLvl1').classList.add('passed');
+    }
+  }
+
+  // Level auswählen mit Überprüfung, ob das vorherige Level bestanden wurde
+  function selectLevel(lvl) {
+    if (lvl === 2 && !level1Passed) {
+      menuMsg.textContent = 'Du hast die vorherige Challenge noch nicht geschafft, um zum nächsten Level zu gelangen.';
+      return;
+    }
+    currentLevel = lvl;
+    menuView.classList.add('hidden');
+    gameView.classList.remove('hidden');
+    initRound();
+  }
+
+  // Neue Runde im Level initialisieren
+  function initRound() {
+    gameState = 'IDLE';
+    animProgress = 0;
+    levelDisplay.textContent = `Level ${currentLevel}`;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    answerInput.value = '';
+    answerInput.disabled = false;
+    submitBtn.style.display = 'inline-block';
+    nextBtn.style.display = 'none';
+
+    if (currentLevel === 1) {
+      topicDisplay.textContent = 'Der Satz des Pythagoras';
+      questionBox.innerHTML = `Berechne die Höhe des Turms (<span style="color:#3b82f6; font-weight:bold;">a in m</span>), bevor der Stickman herunterspringt!`;
+      formulaHint.innerHTML = `Formel: a² + b² = c² &nbsp;|&nbsp; a = √(c² - b²)`;
+      currentProblem = triples[level1Streak % triples.length];
+    } else if (currentLevel === 2) {
+      topicDisplay.textContent = 'Quadratische Funktionen';
+      questionBox.innerHTML = `Level 2 ist freigeschaltet! (In Kürze verfügbar)`;
+      formulaHint.innerHTML = `Demnächst: Parabel-Brücken & Flugbahnen`;
+      currentProblem = { a: 0, b: 0, c: 0 };
+    }
+
+    answerInput.focus();
+    drawScene();
+  }
+
+  // Szene auf dem Canvas zeichnen (Himmel, Burg, Stickman)
+  function drawScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Hintergrund / Himmel
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, 320);
+    skyGradient.addColorStop(0, '#38bdf8');
+    skyGradient.addColorStop(1, '#bae6fd');
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, canvas.width, 320);
+
+    // Wolken zeichnen
+    drawCloud(100, 70, 40);
+    drawCloud(350, 90, 35);
+    drawCloud(580, 50, 45);
+
+    // 2. Wiese / Boden
+    const grassGradient = ctx.createLinearGradient(0, 320, 0, 450);
+    grassGradient.addColorStop(0, '#4ade80');
+    grassGradient.addColorStop(1, '#15803d');
+    ctx.fillStyle = grassGradient;
+    ctx.fillRect(0, 320, canvas.width, 130);
+
+    if (currentLevel === 2) {
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '600 24px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Level 2 Vorschau: Parabel-Brücke', canvas.width / 2, canvas.height / 2);
+      return;
+    }
+
+    ctx.textAlign = 'left';
+
+    // 3. Burgturm
+    const towerWidth = 100;
+    const towerX = 600;
+    const groundY = 320;
+    const towerHeightPx = 200;
+    const towerY = groundY - towerHeightPx;
+
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(towerX, towerY, towerWidth, towerHeightPx);
+
+    // Zinnen auf dem Turm
+    ctx.fillStyle = '#475569';
+    for (let i = 0; i < towerWidth; i += 25) {
+      ctx.fillRect(towerX + i, towerY - 12, 15, 12);
+    }
+
+    // 4. Koordinatenpunkte
+    const poleTopX = towerX;
+    const poleTopY = towerY;
+    const poleBottomX = towerX - 240;
+    const poleBottomY = groundY;
+
+    // 5. Pflastersteine am Boden (Kathete b)
+    const stoneCount = currentProblem.b;
+    const stoneSpacing = (poleTopX - poleBottomX) / Math.max(1, stoneCount - 1);
+
+    for (let i = 0; i < stoneCount; i++) {
+      const sx = poleBottomX + i * stoneSpacing;
+      const sy = groundY + 8;
+      ctx.fillStyle = (i % 2 === 0) ? '#94a3b8' : '#cbd5e1';
+      ctx.beginPath();
+      ctx.ellipse(sx, sy, 7, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // 6. Holzbalken (Hypotenuse c)
+    ctx.save();
+    ctx.strokeStyle = '#854d0e';
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(poleTopX, poleTopY);
+    ctx.lineTo(poleBottomX, poleBottomY);
+    ctx.stroke();
+    ctx.restore();
+
+    // 7. Hilfslinien für das rechtwinklige Dreieck
+    ctx.save();
+    ctx.setLineDash([6, 6]);
+    ctx.lineWidth = 2;
+    
+    // Kathete a (Turmhöhe)
+    ctx.strokeStyle = '#3b82f6';
+    ctx.beginPath();
+    ctx.moveTo(towerX, towerY);
+    ctx.lineTo(towerX, groundY);
+    ctx.stroke();
+
+    // Kathete b (Bodenabstand)
+    ctx.strokeStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(poleBottomX, groundY);
+    ctx.lineTo(towerX, groundY);
+    ctx.stroke();
+    ctx.restore();
+
+    // 8. Beschriftungen in Metern (m) auf dem Canvas - jetzt mit Inter Schriftart
+    ctx.font = '600 16px Inter, sans-serif';
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fillText(`a = ? m`, towerX + 15, towerY + towerHeightPx / 2);
+
+    ctx.fillStyle = '#991b1b';
+    ctx.fillText(`b = ${currentProblem.b} m (${currentProblem.b} Steine)`, poleBottomX + 40, groundY + 35);
+
+    ctx.fillStyle = '#713f12';
+    ctx.fillText(`c = ${currentProblem.c} m`, (poleBottomX + towerX) / 2 - 40, (poleTopY + groundY) / 2 - 15);
+
+    // 9. Stickman-Physik und Sprung-Animation
+    let stickmanX = towerX + 35;
+    let stickmanY = towerY - 37;
+
+    if (gameState === 'ANIMATING_WIN') {
+      stickmanY -= Math.abs(Math.sin(animProgress * Math.PI * 4)) * 20;
+    } else if (gameState === 'ANIMATING_FAIL') {
+      const t = animProgress;
+      if (t < 0.4) {
+        stickmanX -= t * 150;
+        stickmanY -= Math.sin(t / 0.4 * Math.PI) * 30;
+      } else {
+        const fallT = (t - 0.4) / 0.6;
+        stickmanX -= 60 + fallT * 30;
+        stickmanY = (towerY - 37) + fallT * fallT * (groundY - towerY + 5);
+      }
+    }
+
+    drawStickman(stickmanX, stickmanY, gameState);
+  }
+
+  // Funktion zum Zeichnen von Wolken
+  function drawCloud(x, y, radius) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.arc(x + radius * 0.7, y - radius * 0.2, radius * 0.7, 0, Math.PI * 2);
+    ctx.arc(x + radius * 1.3, y, radius * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Funktion zum Zeichnen des Stickman
+  function drawStickman(x, y, state) {
+    ctx.save();
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3.5;
+    ctx.fillStyle = '#0f172a';
+
+    // Kopf
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Körper
+    ctx.beginPath();
+    ctx.moveTo(x, y + 10);
+    ctx.lineTo(x, y + 30);
+    ctx.stroke();
+
+    // Arme und Beine je nach Animationsstatus
+    ctx.beginPath();
+    if (state === 'ANIMATING_WIN') {
+      ctx.moveTo(x, y + 15); ctx.lineTo(x - 12, y + 2);
+      ctx.moveTo(x, y + 15); ctx.lineTo(x + 12, y + 2);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x - 8, y + 42);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x + 8, y + 42);
+    } else if (state === 'ANIMATING_FAIL') {
+      ctx.moveTo(x, y + 15); ctx.lineTo(x - 15, y - 5);
+      ctx.moveTo(x, y + 15); ctx.lineTo(x + 15, y - 5);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x - 12, y + 45);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x + 12, y + 45);
+    } else {
+      ctx.moveTo(x, y + 15); ctx.lineTo(x - 10, y + 25);
+      ctx.moveTo(x, y + 15); ctx.lineTo(x + 10, y + 25);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x - 8, y + 45);
+      ctx.moveTo(x, y + 30); ctx.lineTo(x + 8, y + 45);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Antwort überprüfen und Streak verwalten
+  function checkAnswer() {
+    if (gameState !== 'IDLE') return;
+
+    if (currentLevel === 2) {
+      feedback.textContent = 'Level 2 coming soon!';
+      feedback.className = 'feedback correct';
+      return;
+    }
+
+    const userVal = parseInt(answerInput.value.trim(), 10);
+
+    if (isNaN(userVal)) {
+      feedback.textContent = 'Bitte eine Zahl eingeben!';
+      feedback.className = 'feedback wrong';
+      return;
+    }
+
+    answerInput.disabled = true;
+
+    // Überprüfen, ob die Antwort korrekt ist
+    if (userVal === currentProblem.a) {
+      level1Streak++;
+      if (level1Streak >= 2) {
+        level1Passed = true; // Level erfolgreich abgeschlossen nach 2 richtigen Antworten in Folge
+        feedback.textContent = 'Lvl passed 🎉';
+      } else {
+        feedback.textContent = 'Gewonnen! 1/2 geschafft!';
+      }
+      feedback.className = 'feedback correct';
+      gameState = 'ANIMATING_WIN';
+      animateSuccess();
+    } else {
+      level1Streak = 0; // Streak wird bei einem Fehler zurückgesetzt
+      gameState = 'ANIMATING_FAIL';
+      animateFailure();
+    }
+  }
+
+  // Erfolgs-Animation abspielen
+  function animateSuccess() {
+    let startTime = null;
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      animProgress = (timestamp - startTime) / 1000;
+      drawScene();
+      if (animProgress < 1.2) {
+        requestAnimationFrame(step);
+      } else {
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
+        if (level1Passed) {
+          nextBtn.textContent = 'Zum Menü ➔';
+        } else {
+          nextBtn.textContent = 'Nächste Aufgabe ➔';
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Fehler-Animation (Stickman stürzt ab) abspielen
+  function animateFailure() {
+    let startTime = null;
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      animProgress = Math.min(1, (timestamp - startTime) / 1200);
+      drawScene();
+      if (animProgress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        feedback.textContent = 'Spiel beendet!';
+        feedback.className = 'feedback wrong';
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
+        nextBtn.textContent = 'Erneut versuchen ↺';
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Event Listener für Buttons und Tastatur
+  submitBtn.addEventListener('click', checkAnswer);
+  answerInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (level1Passed && currentLevel === 1) {
+      showMenu();
+    } else {
+      initRound();
+    }
+  });
+
+  // Spiel beim Start mit dem Hauptmenü beginnen
+  showMenu();
+</script>
+</body>
+</html>
